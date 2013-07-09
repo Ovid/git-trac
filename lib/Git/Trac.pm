@@ -2,37 +2,37 @@ package Git::Trac;
 
 use 5.010;
 use Moose;
-use Git::Trac::Authentication;
-use Net::Trac;
+use autodie ':all';
+use namespace::autoclean;
+
+use Git::Trac::Cache;
 
 our $VERSION = '0.01';
 
-has '_auth' => (
+has 'ticket_cache' => (
     is      => 'ro',
-    isa     => 'Git::Trac::Authentication',
-    builder => '_build_auth',
-);
-sub _build_auth { Git::Trac::Authentication->new }
-
-has 'connection' => (
-    is      => 'ro',
-    isa     => "Net::Trac::Connection",
+    isa     => 'Git::Trac::Cache',
     lazy    => 1,
-    builder => '_build_connection',
+    builder => '_build_ticket_cache',
 );
-sub _build_connection { shift->_auth->connect; }
+
+sub _build_ticket_cache {
+    my $self = shift;
+    if ( -f $self->ticket_cache_file ) {
+        return Git::Trac::Cache->load( $self->ticket_cache_file );
+    }
+    return Git::Trac::Cache->new;
+}
+
+has 'ticket_cache_file' => (
+    is      => 'ro',
+    isa     => 'Str',
+    default => '.git_trac_ticket_cache',
+);
 
 sub get_open_tickets {
-    my ( $self, $user ) = @_;
-    $user //= $self->_auth->user;
-
-    my $search
-      = Net::Trac::TicketSearch->new( connection => $self->connection );
-
-    return $search->query(
-        owner  => $user,
-        status => { 'not' => [qw(closed)] },
-    );
+    my $self = shift;
+    return $self->ticket_cache->tickets;
 }
 
 sub tickets_to_string {
@@ -42,9 +42,14 @@ sub tickets_to_string {
     foreach my $ticket (@$tickets) {
         my ( $id, $summary, $created )
           = map { $ticket->$_ } qw/id summary created/;
-        $string .= sprintf "%7d - %s - $summary\n" => $id, $created->ymd;
+        $string .= sprintf "%7d - $created - $summary\n" => $id;
     }
     return $string;
+}
+
+sub DEMOLISH {
+    my $self = shift;
+    $self->ticket_cache->store( $self->ticket_cache_file );
 }
 
 __PACKAGE__->meta->make_immutable;
