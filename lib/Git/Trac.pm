@@ -5,6 +5,7 @@ use Moose;
 use autodie ':all';
 use namespace::autoclean;
 use Carp;
+use Term::EditorEdit;
 
 use aliased 'Git::Repository';
 
@@ -170,7 +171,7 @@ sub start_task {
 
     $ticket->update_status(
         connection => $self->configuration->connection,
-        status     => 'accepted',
+        status     => 'accepted', # currently a no-op
         comment    => "Work started in branch $branch",
     );
 
@@ -201,6 +202,45 @@ sub delete {
         return;
     }
     $self->task_list->delete($task);
+}
+
+sub commit {
+    my ( $self, @args ) = @_;
+
+    my $task = $self->task_list->current_task;
+
+    unless ($task) {
+        warn "No current task found. Skipping commit";
+    }
+
+    unless ( grep {/^-m$/} @args ) {
+        my $id      = $task->id;
+        my $branch  = $task->branch;
+        my $message = Term::EditorEdit->edit( document => <<"END");
+(#$id) Enter you commit message here
+
+Description
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# On branch $branch
+END
+        unless ($message) {
+            die "Aborting commit due to empty commit message";
+        }
+        push @args => ( '-m', $message );
+    }
+
+
+    my $git = $self->_git;
+    $git->run( commit => @args );
+    my $message = $git->run('log', '-n1');
+
+    my $ticket = $self->ticket_list->by_id( $task->id );
+    $ticket->update_status(
+        connection => $self->configuration->connection,
+        comment    => $message,
+    );
 }
 
 sub _branch_is_dirty {

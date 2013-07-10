@@ -27,6 +27,7 @@ WriteMakefile(
         'MooseX::Types::DateTime::MoreCoercions' => 0,
         'aliased'                                => 0,
         'Git::Repository'                        => 0,
+        'Term::EditorEdit'                       => 0,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES    => 'Git-Trac-*' },

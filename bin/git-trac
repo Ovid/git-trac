@@ -9,14 +9,32 @@ use Getopt::Long;
 
 our $VERSION = '0.01';
 
+my %commands = ( # yeah, this could be cleaned up, too
+    tickets => sub { say shift->tickets_to_string },
+    tasks   => sub { say shift->tasks_to_string },
+    start   => sub { shift->start_task(@_) },
+    switch  => sub { say shift->switch_task(@_) },
+    commit  => sub { shift->commit(@_) },
+    delete  => sub { shift->delete(@_) },
+);
+my ( $command, @args );
+
+for my $i ( 0 .. $#ARGV ) {
+
+    # this is because something like 'git trac commit -m "some message"' will
+    # cause issues and I don't want an artificial syntax here
+    if ( exists $commands{ $ARGV[$i] } ) {
+        ( $command, @args ) = splice @ARGV, $i;
+        last;
+    }
+}
+
 GetOptions(
     'help|?'  => sub { pod2usage( -verbose => 1 ) },
     'man'     => sub { pod2usage( -verbose => 2 ) },
     'refresh' => \my $refresh,
     'version' => \my $version,
 ) or die "Bad Options";
-
-my ( $command, @args ) = @ARGV;
 
 if ( $version ) {
     say "git-trac version $Git::Trac::VERSION";
@@ -31,15 +49,10 @@ use Git::Trac;
 my $trac = Git::Trac->new( refresh => $refresh );
 
 if ($command) {
-    given ($command) {
-        when ('tickets') { say $trac->tickets_to_string }
-        when ('tasks')   { say $trac->tasks_to_string }
-        when ('start')   { $trac->start_task(@args) }
-        when ('switch')  { say $trac->switch_task(@args) }
-        when ('commit')  { die 'unimplemented' }
-        when ('delete')  { $trac->delete(@args) }
-        default          { say "Unknown command: $command" }
-    }
+    my $action = $commands{$command}
+      or die "Unkown command '$command'";
+
+    $action->( $trac, @args );
 }
 else {
     say "No command given";
