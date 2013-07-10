@@ -134,6 +134,10 @@ sub start_task {
     unless (@name) {
         croak("Starting a task requires a branch name");
     }
+    if ( my $dirty = $self->_branch_is_dirty ) {
+        warn "Refusing to start task with dirty branch\n$dirty";
+        return;
+    }
     my $ticket = $self->ticket_list->by_id($id)
       or croak "No ticket found for id ($id)";
 
@@ -170,9 +174,19 @@ sub switch_task {
     my $task = $self->task_list->by_id($id)
         or croak("No such task '$id'");
 
+    if ( my $dirty = $self->_branch_is_dirty ) {
+        warn "Refusing to switch tasks with dirty branch\n$dirty";
+        return;
+    }
+
     $self->_git->run( checkout => $task->branch );
     $self->task_list->set_current($task);
     return $self->tasks_to_string;
+}
+
+sub _branch_is_dirty {
+    my $self = shift;
+    return $self->_git->run('diff', '--shortstat');
 }
 
 __PACKAGE__->meta->make_immutable;
