@@ -3,7 +3,6 @@ package Git::Trac::Configuration;
 use 5.010;
 use Moose;
 use MooseX::Configuration;
-use Net::Trac::Connection;
 use File::stat;    # not File::Stat
 use Carp;
 use namespace::autoclean;
@@ -57,7 +56,7 @@ sub BUILD {
     unless ( -f $config_file ) {
         die $self->_usage;
     }
-    my $mode        = 0777 & stat($config_file)->mode;
+    my $mode = 0777 & stat($config_file)->mode;
 
     unless ( ( $mode & 0600 ) == 0600 ) {
         croak("Permisions on '$config_file' must be 0600");
@@ -71,7 +70,7 @@ sub connect {
 }
 
 sub _usage {
-    my $self = shift;
+    my $self        = shift;
     my $config_file = $self->config_file;
 
     print STDERR <<"END";
