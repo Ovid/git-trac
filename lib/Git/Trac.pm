@@ -18,11 +18,19 @@ has 'ticket_cache' => (
 
 sub _build_ticket_cache {
     my $self = shift;
-    if ( -f $self->ticket_cache_file ) {
-        return Git::Trac::Cache->load( $self->ticket_cache_file );
+    my $file = $self->ticket_cache_file;
+
+    # always reload if it's greater than a day old
+    if ( !$self->refresh && -f $file && -M _ < 1 ) {
+        return Git::Trac::Cache->load($file);
     }
     return Git::Trac::Cache->new;
 }
+
+has 'refresh' => (
+    is  => 'ro',
+    isa => 'Bool',
+);
 
 has 'ticket_cache_file' => (
     is      => 'ro',

@@ -5,6 +5,13 @@ use strict;
 use warnings;
 use lib 'lib';
 
+use Getopt::Long;
+
+GetOptions(
+    'refresh' => \my $refresh,
+    'list'    => \my $list,
+) or die;
+
 use Git::Trac;
-my $trac = Git::Trac->new;
+my $trac = Git::Trac->new( refresh => $refresh );
 say $trac->tickets_to_string;
