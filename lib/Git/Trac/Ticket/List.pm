@@ -1,30 +1,29 @@
-package Git::Trac::Cache;
+package Git::Trac::Ticket::List;
 
+use 5.010;
 use Moose;
 use MooseX::Storage;
 use autodie ':all';
 use namespace::autoclean;
 use Net::Trac;
 
-use aliased 'Git::Trac::Configuration';
 use aliased 'Git::Trac::Ticket';
 with Storage( 'format' => 'JSON', 'io' => 'File' );
 
 our $VERSION = '0.01';
 
-has 'cache_file' => (
+has 'cache' => (
     is       => 'ro',
     isa      => 'Str',
     required => 1,
 );
 
-has '_auth' => (
-    traits  => ['DoNotSerialize'],
-    is      => 'ro',
-    isa     => Configuration,
-    builder => '_build_auth',
+has 'configuration' => (
+    traits => ['DoNotSerialize'],
+    is     => 'rw',
+    writer => '_set_configuration',       # trusted method, not private method
+    isa    => 'Git::Trac::Configuration',
 );
-sub _build_auth { Configuration->new }
 
 has 'connection' => (
     traits  => ['DoNotSerialize'],
@@ -33,19 +32,17 @@ has 'connection' => (
     lazy    => 1,
     builder => '_build_connection',
 );
-sub _build_connection { shift->_auth->connect; }
+sub _build_connection { shift->configuration->connect; }
 
 has '_tickets' => (
-    is => 'rw',
-
-    #    isa     => 'ArrayRef[Net::Track::Tickets]',
+    is      => 'rw',
     lazy    => 1,
     builder => '_build_tickets',
 );
 
 sub _build_tickets {
-    my ( $self, $user ) = @_;
-    $user //= $self->_auth->user;
+    my ($self) = @_;
+    my $user = $self->configuration->user;
 
     my $search
       = Net::Trac::TicketSearch->new( connection => $self->connection );
@@ -65,6 +62,17 @@ sub _build_tickets {
     return \@tickets;
 }
 
+sub by_id {
+    my ( $self, $id ) = @_;
+    state $ticket_for = { map { $_->id => $_ } @{ $self->tickets } };
+    return $ticket_for->{$id};
+}
+
+sub is_empty {
+    my $self = shift;
+    return scalar !scalar @{ $self->_tickets };
+}
+
 sub tickets {
     my $self    = shift;
     my $tickets = $self->_tickets;
@@ -73,9 +81,9 @@ sub tickets {
 
 sub DEMOLISH {
     my $self = shift;
-    $self->store( $self->cache_file );
+    $self->store( $self->cache );
 }
 
 __PACKAGE__->meta->make_immutable;
 
-    1;
+1;

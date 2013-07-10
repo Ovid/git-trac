@@ -89,9 +89,9 @@ file should be an ini-style with the following data:
     url      = https://example.com/trac/company.dev
 
     [git]
-    
+
     ; This is the main branch you will branch from. For personal projects, this is
-    ; often 'main'. For a work environment, you often branch from 'devel' or
+    ; often 'master'. For a work environment, you often branch from 'devel' or
     ; 'integration', so use that branch name. When you switch to a new branch, git
     ; will check out your integration_branch and branch from there. Obviously this
     ; will fail if you have a dirty working tree

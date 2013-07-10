@@ -4,56 +4,171 @@ use 5.010;
 use Moose;
 use autodie ':all';
 use namespace::autoclean;
+use Carp;
+use aliased 'Git::Repository';
 
-use Git::Trac::Cache;
+use aliased 'Git::Trac::Configuration';
+use aliased 'Git::Trac::Task';
+use aliased 'Git::Trac::Ticket::List' => 'TicketList';
+use aliased 'Git::Trac::Task::List'   => 'TaskList';
 
 our $VERSION = '0.01';
 
-has 'cache' => (
+has 'configuration' => (
     is      => 'ro',
-    isa     => 'Git::Trac::Cache',
-    lazy    => 1,
-    builder => '_build_cache',
+    isa     => Configuration,
+    builder => '_build_configuration',
+);
+sub _build_configuration { Configuration->new }
+
+has 'ticket_cache' => (
+    is      => 'ro',
+    isa     => 'Str',
+    default => '.git_trac_ticket_cache',
+);
+has 'ticket_list' => (
+    is            => 'ro',
+    isa           => TicketList,
+    lazy          => 1,
+    builder       => '_build_ticket_list',
+    documentation => 'List class of Trac tickets',
 );
 
-sub _build_cache {
-    my $self = shift;
-    my $file = $self->cache_file;
+sub _build_ticket_list {
+    my $self  = shift;
+    my $cache = $self->ticket_cache;
 
-    # always reload if it's greater than a day old
-    if ( !$self->refresh && -f $file && -M _ < 1 ) {
-        return Git::Trac::Cache->load($file);
+    if ( !$self->refresh && -f $cache ) {
+        my $ticket_list = TicketList->load($cache);
+        $ticket_list->_set_configuration( $self->configuration );
+        return $ticket_list;
     }
-    return Git::Trac::Cache->new( cache_file => $self->cache_file );
+    else {
+        return TicketList->new(
+            cache         => $cache,
+            configuration => $self->configuration,
+        );
+    }
 }
+
+has 'task_cache' => (
+    is      => 'ro',
+    isa     => 'Str',
+    default => '.git_trac_task_cache',
+);
+has 'task_list' => (
+    is            => 'ro',
+    isa           => TaskList,
+    lazy          => 1,
+    builder       => '_build_task_list',
+    documentation => 'List class of Trac tasks',
+);
+sub _build_task_list {
+    my $self  = shift;
+    my $cache = $self->task_cache;
+
+    if ( -f $cache ) {
+        my $task_list = TaskList->load($cache);
+        $task_list->_set_ticket_list($self->ticket_list);
+        return $task_list;
+    }
+    else {
+        return TaskList->new(
+            cache       => $cache,
+            ticket_list => $self->ticket_list,
+        );
+    }
+}
+
+has 'git' => (
+    is      => 'ro',
+    isa     => Repository,
+    builder => '_build_git',
+);
+sub _build_git { Repository->new }
 
 has 'refresh' => (
     is  => 'ro',
     isa => 'Bool',
 );
 
-has 'cache_file' => (
-    is      => 'ro',
-    isa     => 'Str',
-    default => '.git_trac_cache',
-);
-
-sub get_open_tickets {
-    my $self = shift;
-    return @{ $self->cache->tickets };
-}
-
 sub tickets_to_string {
-    my $self    = shift;
-    my $string  = '';
+    my $self   = shift;
+    my $string = '';
 
-    foreach my $ticket ($self->get_open_tickets) {
+    if ( $self->ticket_list->is_empty ) {
+        say "No tickets found. Perhaps refresh? (git trac --refresh)";
+        return;
+    }
+
+    foreach my $ticket ( @{ $self->ticket_list->tickets } ) {
         my ( $id, $summary, $created, $status )
           = map { $ticket->$_ } qw/id summary created status/;
         $string .= sprintf "%7d - %s - %-12s - $summary\n" => $id,
           $created, $status;
     }
     return $string;
+}
+
+sub tasks_to_string {
+    my $self   = shift;
+    my $string = '';
+
+    if ( $self->task_list->is_empty ) {
+        say "No tasks found. (git trac start \$ticket task name)";
+        return;
+    }
+
+    foreach my $task ( @{ $self->task_list->tasks } ) {
+        my ( $id, $summary, $is_current, $branch )
+          = map { $task->$_ } qw/id summary is_current branch/;
+        $is_current = $is_current ? '*' : '';
+        $string .= sprintf "%2s - %7d - $branch ($summary)\n" => $is_current, $id;
+    }
+    return $string;
+}
+
+sub start_task {
+    my ( $self, $id, @name ) = @_;
+    
+    unless (@name) {
+        croak("Starting a task requires a branch name");
+    }
+    my $ticket = $self->ticket_list->by_id($id)
+      or croak "No ticket found for id ($id)";
+
+    if ( my $task = $self->task_list->by_id($id) ) {
+        warn "Task $id already started\n";
+        return;
+    }
+    my $branch = join '_' => @name;
+    $branch =~ s/\W/_/g;
+    unless ( $branch =~ /\b$id\b/ ) {
+        $branch = "ticket_$id\_$branch";
+    }
+
+
+    my $task = Task->new(
+        branch     => $branch,
+        ticket     => $ticket,
+        is_current => 1,
+    );
+
+    my $integration_branch = $self->configuration->integration_branch;
+    warn <<"END";
+git checkout $integration_branch
+git checkout -b $branch;
+END
+    $self->task_list->add_task($task);
+}
+
+sub switch_task {
+    my ( $self, $id ) = @_;
+    my $task = $self->task_list->by_id($id)
+        or croak("No such task '$id'");
+
+    $self->task_list->set_current($task);
+    return $self->tasks_to_string;
 }
 
 __PACKAGE__->meta->make_immutable;
@@ -71,7 +186,6 @@ Git::Trac - Interact with git and trac
 Version 0.01
 
 =cut
-
 
 =head1 SYNOPSIS
 
@@ -93,16 +207,11 @@ L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Git-Trac>.  I will be
 notified, and then you'll automatically be notified of progress on your bug as
 I make changes.
 
-
-
-
 =head1 SUPPORT
 
 You can find documentation for this module with the perldoc command.
 
     perldoc Git::Trac
-
-
 You can also look for information at:
 
 =over 4
@@ -124,7 +233,6 @@ L<http://cpanratings.perl.org/d/Git-Trac>
 L<http://search.cpan.org/dist/Git-Trac/>
 
 =back
-
 
 =head1 ACKNOWLEDGEMENTS
 
@@ -169,7 +277,4 @@ CONTRIBUTOR WILL BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, OR
 CONSEQUENTIAL DAMAGES ARISING IN ANY WAY OUT OF THE USE OF THE PACKAGE,
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-
 =cut
-
-1; # End of Git::Trac
