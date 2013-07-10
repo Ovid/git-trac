@@ -1,9 +1,15 @@
+bin/git-trac
 Changes
 lib/Git/Trac.pm
+lib/Git/Trac/Configuration.pm
+lib/Git/Trac/Task.pm
+lib/Git/Trac/Task/List.pm
+lib/Git/Trac/Ticket.pm
+lib/Git/Trac/Ticket/List.pm
 Makefile.PL
 MANIFEST			This list of files
 README
+README.md
 t/00-load.t
-t/manifest.t
-t/pod-coverage.t
-t/pod.t
+xt/pod-coverage.t
+xt/pod.t

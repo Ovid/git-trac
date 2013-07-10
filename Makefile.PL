@@ -20,10 +20,10 @@ WriteMakefile(
     PREREQ_PM => {
         'Moose'                                  => '2.0',
         'MooseX::Storage'                        => '0.34',
-        'autodie'                                => '2.20',
+        'autodie'                                => '2.17',
         'namespace::autoclean'                   => '0.13',
-        'MooseX::Configuration'                  => 1,
-        'Net::Trac'                              => 1,
+        'MooseX::Configuration'                  => '0.02',
+        'Net::Trac'                              => '0.16',
         'MooseX::Types::DateTime::MoreCoercions' => 0,
         'aliased'                                => 0,
         'Git::Repository'                        => 0,
