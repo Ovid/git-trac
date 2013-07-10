@@ -34,6 +34,15 @@ has 'url' => (
     documentation => 'Your Trac url',
 );
 
+has 'integration_branch' => (
+    is            => 'ro',
+    isa           => 'Str',
+    section       => 'git',
+    key           => 'integration_branch',
+    documentation => 'The primary branch you will branch from',
+    default       => 'master',
+);
+
 has 'config_file' => (
     is       => 'ro',
     isa      => 'Str',
@@ -76,8 +85,17 @@ file should be an ini-style with the following data:
     ; Your Trac password
     password = your password
 
-    ; Your Trac url
-    url      = https://dev.drugdev.org/trac/drugdev.dev
+    ; Your base Trac url
+    url      = https://example.com/trac/company.dev
+
+    [git]
+    
+    ; This is the main branch you will branch from. For personal projects, this is
+    ; often 'main'. For a work environment, you often branch from 'devel' or
+    ; 'integration', so use that branch name. When you switch to a new branch, git
+    ; will check out your integration_branch and branch from there. Obviously this
+    ; will fail if you have a dirty working tree
+    integration_branch = integration
 END
 }
 
