@@ -28,6 +28,7 @@ WriteMakefile(
         'aliased'                                => 0,
         'Git::Repository'                        => 0,
         'Term::EditorEdit'                       => 0,
+        'Pod::Usage'                             => 0,
     },
     dist  => { COMPRESS => 'gzip -9f', SUFFIX => 'gz', },
     clean => { FILES    => 'Git-Trac-*' },
