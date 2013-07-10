@@ -167,6 +167,9 @@ sub start_task {
         $git->run( checkout => $integration_branch );
     }
     $git->run( 'checkout', '-b', $branch );
+
+    $ticket->update_status( $self->configuration->connection, 'accepted' );
+
     $self->task_list->add_task($task);
 }
 
