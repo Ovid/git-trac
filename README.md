@@ -149,3 +149,10 @@ Trac.
     git trac delete $number
 
 Deletes a task. Does not delete the branch or update Trac.
+
+## `comment`
+
+    git trac comment
+    git track comment message
+
+Post a comment to Trac for the current task.

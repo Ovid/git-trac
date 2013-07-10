@@ -204,6 +204,33 @@ sub delete {
     $self->task_list->delete($task);
 }
 
+sub comment {
+    my ( $self, @comment ) = @_;
+    my $comment = join ' ' => @comment;
+
+    my $task = $self->task_list->current_task;
+    unless ($task) {
+        warn "No current task found. Skipping commit";
+        return;
+    }
+
+    unless ($comment) {
+        my $id = $task->id;
+        $comment = Term::EditorEdit->edit( document => <<"END");
+Comments are posted verbatim.
+END
+        unless ($comment) {
+            return "Aborting comment";
+        }
+    }
+
+    my $ticket = $self->ticket_list->by_id( $task->id );
+    $ticket->update_status(
+        connection => $self->configuration->connection,
+        comment    => $comment,
+    );
+}
+
 sub commit {
     my ( $self, @args ) = @_;
 
@@ -211,6 +238,7 @@ sub commit {
 
     unless ($task) {
         warn "No current task found. Skipping commit";
+        return;
     }
 
     unless ( grep {/^-m$/} @args ) {

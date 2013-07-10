@@ -9,13 +9,14 @@ use Getopt::Long;
 
 our $VERSION = '0.01';
 
-my %commands = ( # yeah, this could be cleaned up, too
+my %commands = (    # yeah, this could be cleaned up, too
     tickets => sub { say shift->tickets_to_string },
     tasks   => sub { say shift->tasks_to_string },
     start   => sub { shift->start_task(@_) },
     switch  => sub { say shift->switch_task(@_) },
     commit  => sub { shift->commit(@_) },
     delete  => sub { shift->delete(@_) },
+    comment => sub { shift->comment(@_) },
 );
 my ( $command, @args );
 
@@ -36,7 +37,7 @@ GetOptions(
     'version' => \my $version,
 ) or die "Bad Options";
 
-if ( $version ) {
+if ($version) {
     say "git-trac version $Git::Trac::VERSION";
     exit 0;
 }
@@ -212,3 +213,10 @@ Trac.
     git trac delete $number
 
 Deletes a task. Does not delete the branch or update Trac.
+
+=head2 C<comment>
+
+    git trac comment
+    git track comment message
+
+Post a comment to Trac for the current task.
