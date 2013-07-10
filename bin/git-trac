@@ -37,7 +37,7 @@ if ($command) {
         when ('start')   { $trac->start_task(@args) }
         when ('switch')  { say $trac->switch_task(@args) }
         when ('commit')  { die 'unimplemented' }
-        when ('finish')  { die 'unimplemented' }
+        when ('delete')  { $trac->delete(@args) }
         default          { say "Unknown command: $command" }
     }
 }
@@ -77,7 +77,7 @@ Commands:
     start  $number $branch_name  Start working on ticket $number in branch $branch_name
     switch $number               Switch to already started task $number
     commit $message              Commit a change with $message, posting the message to Trac
-    finish $number               Will close the ticket and delete the task
+    delete $number               Will delete the task (but not the branch)
 
 =head1 DESCRIPTION
 

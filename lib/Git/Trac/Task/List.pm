@@ -84,6 +84,16 @@ sub add_task {
     $self->_add_task($task);
 }
 
+sub delete {
+    my ( $self, $task ) = @_;
+
+    my $id = $task->id;
+    my @tasks = grep { $_->id ne $id } @{ $self->tasks };
+    $self->tasks( \@tasks );
+    @tasks = grep { $_->{id} ne $id } @{ $self->_tasks };
+    $self->_tasks( \@tasks );
+}
+
 sub set_current {
     my ( $self, $current_task ) = @_;
     foreach my $task ( @{ $self->_tasks } ) {

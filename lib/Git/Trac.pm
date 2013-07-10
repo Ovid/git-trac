@@ -192,6 +192,17 @@ sub switch_task {
     return $self->tasks_to_string;
 }
 
+sub delete {
+    my ( $self, $id ) = @_;
+    my $task = $self->task_list->by_id($id)
+      or croak("No such task '$id'");
+    if ( my $dirty = $self->_branch_is_dirty ) {
+        warn "Refusing to delete task with dirty branch\n$dirty";
+        return;
+    }
+    $self->task_list->delete($task);
+}
+
 sub _branch_is_dirty {
     my $self = shift;
     return $self->_git->run('diff', '--shortstat');
