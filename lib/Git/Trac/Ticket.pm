@@ -36,10 +36,11 @@ sub update_status {
     my $ticket = Net::Trac::Ticket->new( connection => $connection );
     $ticket->load( $self->id );
 
-    if ( $self->status ne $status ) {
-        $ticket->update( status => $status )
-          or warn "Failed to update status: $status";
-    }
+    # XXX this doesn't appear to work, so let's not waste the bandwidth on it.
+    #if ( $self->status ne $status ) {
+    #    $ticket->update( status => $status )
+    #      or warn "Failed to update status: $status";
+    #}
     $ticket->comment($comment) or warn "Failed to add comment: $comment";
 }
 
