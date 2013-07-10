@@ -12,6 +12,12 @@ with Storage( 'format' => 'JSON', 'io' => 'File' );
 
 our $VERSION = '0.01';
 
+has 'cache_file' => (
+    is       => 'ro',
+    isa      => 'Str',
+    required => 1,
+);
+
 has '_auth' => (
     traits  => ['DoNotSerialize'],
     is      => 'ro',
@@ -50,25 +56,26 @@ sub _build_tickets {
     );
 
     my @tickets;
-    $DB::single = 1;
     foreach my $ticket (@$tickets) {
-        my %ticket_data = map { $_ => $ticket->$_ } Ticket->string_attributes;
-
-        foreach my $coerced ( Ticket->datetime_attributes ) {
-            $ticket_data{$coerced} = '' . $ticket->$coerced;
-        }
-
+        my %ticket_data = map { my $attr = $_->name; $attr => $ticket->$attr }
+          Ticket->meta->get_all_attributes;
+        $ticket_data{created} .= '';    # coerce DateTime or we can't cache it
         push @tickets => \%ticket_data;
     }
     return \@tickets;
 }
 
 sub tickets {
-    my $self = shift;
+    my $self    = shift;
     my $tickets = $self->_tickets;
     return [ map { Ticket->new($_) } @$tickets ];
 }
 
+sub DEMOLISH {
+    my $self = shift;
+    $self->store( $self->cache_file );
+}
+
 __PACKAGE__->meta->make_immutable;
 
-1;
+    1;

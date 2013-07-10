@@ -4,8 +4,7 @@ use Moose;
 use autodie ':all';
 use namespace::autoclean;
 use MooseX::Types::DateTime::MoreCoercions qw(DateTime);
-
-use Git::Trac::Authentication;
+use DateTime::Format::Strptime;
 
 our $VERSION = '0.01';
 
@@ -21,18 +20,10 @@ has 'created' => (
     coerce   => 1,
 );
 
-sub string_attributes {
-    my @attributes
-      = map { $_->name }
-      grep  { !$_->should_coerce } Git::Trac::Ticket->meta->get_all_attributes;
-    return @attributes;
-}
-
-sub datetime_attributes {
-    my @attributes
-      = map { $_->name }
-      grep  { $_->should_coerce } Git::Trac::Ticket->meta->get_all_attributes;
-    return @attributes;
+sub BUILD {
+    my $self = shift;
+    my $formatter = DateTime::Format::Strptime->new( pattern => '%F' );
+    $self->created->set_formatter($formatter);
 }
 
 __PACKAGE__->meta->make_immutable;

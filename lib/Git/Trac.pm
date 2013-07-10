@@ -9,22 +9,22 @@ use Git::Trac::Cache;
 
 our $VERSION = '0.01';
 
-has 'ticket_cache' => (
+has 'cache' => (
     is      => 'ro',
     isa     => 'Git::Trac::Cache',
     lazy    => 1,
-    builder => '_build_ticket_cache',
+    builder => '_build_cache',
 );
 
-sub _build_ticket_cache {
+sub _build_cache {
     my $self = shift;
-    my $file = $self->ticket_cache_file;
+    my $file = $self->cache_file;
 
     # always reload if it's greater than a day old
     if ( !$self->refresh && -f $file && -M _ < 1 ) {
         return Git::Trac::Cache->load($file);
     }
-    return Git::Trac::Cache->new;
+    return Git::Trac::Cache->new( cache_file => $self->cache_file );
 }
 
 has 'refresh' => (
@@ -32,15 +32,15 @@ has 'refresh' => (
     isa => 'Bool',
 );
 
-has 'ticket_cache_file' => (
+has 'cache_file' => (
     is      => 'ro',
     isa     => 'Str',
-    default => '.git_trac_ticket_cache',
+    default => '.git_trac_cache',
 );
 
 sub get_open_tickets {
     my $self = shift;
-    return $self->ticket_cache->tickets;
+    return $self->cache->tickets;
 }
 
 sub tickets_to_string {
@@ -51,15 +51,10 @@ sub tickets_to_string {
     foreach my $ticket (@$tickets) {
         my ( $id, $summary, $created, $status )
           = map { $ticket->$_ } qw/id summary created status/;
-        $string .= sprintf "%7d - %s - %12s - $summary\n" => $id,
-          $created->ymd, $status;
+        $string .= sprintf "%7d - %s - %-12s - $summary\n" => $id,
+          $created, $status;
     }
     return $string;
-}
-
-sub DEMOLISH {
-    my $self = shift;
-    $self->ticket_cache->store( $self->ticket_cache_file );
 }
 
 __PACKAGE__->meta->make_immutable;
