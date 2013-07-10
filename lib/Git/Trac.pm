@@ -80,7 +80,7 @@ sub _build_task_list {
     }
 }
 
-has 'git' => (
+has '_git' => (
     is      => 'ro',
     isa     => Repository,
     builder => '_build_git',
@@ -130,14 +130,14 @@ sub tasks_to_string {
 
 sub start_task {
     my ( $self, $id, @name ) = @_;
-    
+
     unless (@name) {
         croak("Starting a task requires a branch name");
     }
     my $ticket = $self->ticket_list->by_id($id)
       or croak "No ticket found for id ($id)";
 
-    if ( my $task = $self->task_list->by_id($id) ) {
+    if ( $self->task_list->by_id($id) ) {
         warn "Task $id already started\n";
         return;
     }
@@ -147,7 +147,6 @@ sub start_task {
         $branch = "ticket_$id\_$branch";
     }
 
-
     my $task = Task->new(
         branch     => $branch,
         ticket     => $ticket,
@@ -155,10 +154,14 @@ sub start_task {
     );
 
     my $integration_branch = $self->configuration->integration_branch;
-    warn <<"END";
-git checkout $integration_branch
-git checkout -b $branch;
-END
+    my $git                = $self->_git;
+
+    # XXX requires git 1.6.3 or newer
+    my $current_branch = $git->run(qw/rev-parse --abbrev-ref HEAD/);
+    unless ( $current_branch eq $integration_branch ) {
+        $git->run( checkout => $integration_branch );
+    }
+    $git->run( 'checkout', '-b', $branch );
     $self->task_list->add_task($task);
 }
 
