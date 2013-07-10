@@ -121,6 +121,9 @@ sub current_task {
     if ( @current > 1 ) {
         croak("PANIC: More than one current task found");
     }
+    elsif ( !@current ) {
+        warn "No current tasks found";
+    }
     return $current[0];
 }
 
