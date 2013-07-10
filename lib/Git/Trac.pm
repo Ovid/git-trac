@@ -40,15 +40,14 @@ has 'cache_file' => (
 
 sub get_open_tickets {
     my $self = shift;
-    return $self->cache->tickets;
+    return @{ $self->cache->tickets };
 }
 
 sub tickets_to_string {
     my $self    = shift;
-    my $tickets = $self->get_open_tickets;
     my $string  = '';
 
-    foreach my $ticket (@$tickets) {
+    foreach my $ticket ($self->get_open_tickets) {
         my ( $id, $summary, $created, $status )
           = map { $ticket->$_ } qw/id summary created status/;
         $string .= sprintf "%7d - %s - %-12s - $summary\n" => $id,

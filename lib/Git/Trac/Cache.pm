@@ -6,7 +6,7 @@ use autodie ':all';
 use namespace::autoclean;
 use Net::Trac;
 
-use Git::Trac::Authentication;
+use aliased 'Git::Trac::Configuration';
 use aliased 'Git::Trac::Ticket';
 with Storage( 'format' => 'JSON', 'io' => 'File' );
 
@@ -21,10 +21,10 @@ has 'cache_file' => (
 has '_auth' => (
     traits  => ['DoNotSerialize'],
     is      => 'ro',
-    isa     => 'Git::Trac::Authentication',
+    isa     => Configuration,
     builder => '_build_auth',
 );
-sub _build_auth { Git::Trac::Authentication->new }
+sub _build_auth { Configuration->new }
 
 has 'connection' => (
     traits  => ['DoNotSerialize'],

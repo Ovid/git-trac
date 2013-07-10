@@ -1,4 +1,4 @@
-package Git::Trac::Authentication;
+package Git::Trac::Configuration;
 
 use 5.010;
 use Moose;
