@@ -22,8 +22,9 @@ has 'created' => (
 
 sub BUILD {
     my $self = shift;
-    my $formatter = DateTime::Format::Strptime->new( pattern => '%F' );
-    $self->created->set_formatter($formatter);
+
+    my $YYYY_MM_DD = DateTime::Format::Strptime->new( pattern => '%F' );
+    $self->created->set_formatter($YYYY_MM_DD);
 }
 
 __PACKAGE__->meta->make_immutable;
