@@ -217,7 +217,7 @@ sub commit {
         my $id      = $task->id;
         my $branch  = $task->branch;
         my $message = Term::EditorEdit->edit( document => <<"END");
-(#$id) Enter you commit message here
+Ticket #$id. Enter you commit message here
 
 Description
 
