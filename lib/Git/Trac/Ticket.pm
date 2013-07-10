@@ -29,11 +29,18 @@ sub BUILD {
 }
 
 sub update_status {
-    my ( $self, $connection, $status ) = @_;
-    return if $self->status eq $status;
+    my ( $self, %arg_for ) = @_;
+
+    my ( $connection, $status, $comment )
+      = @arg_for{qw/connection status comment/};
     my $ticket = Net::Trac::Ticket->new( connection => $connection );
-    $ticket->load($self->id);
-    $ticket->update( status => $status );
+    $ticket->load( $self->id );
+
+    if ( $self->status ne $status ) {
+        $ticket->update( status => $status )
+          or warn "Failed to update status: $status";
+    }
+    $ticket->comment($comment) or warn "Failed to add comment: $comment";
 }
 
 __PACKAGE__->meta->make_immutable;

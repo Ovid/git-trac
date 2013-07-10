@@ -168,7 +168,11 @@ sub start_task {
     }
     $git->run( 'checkout', '-b', $branch );
 
-    $ticket->update_status( $self->configuration->connection, 'accepted' );
+    $ticket->update_status(
+        connection => $self->configuration->connection,
+        status     => 'accepted',
+        comment    => "Work started in branch $branch",
+    );
 
     $self->task_list->add_task($task);
 }
