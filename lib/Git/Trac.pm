@@ -228,6 +228,7 @@ END
         unless ($message) {
             die "Aborting commit due to empty commit message";
         }
+        $message = join "\n" => grep { !/^\s*#/ } split /\n/ => $message;
         push @args => ( '-m', $message );
     }
 
