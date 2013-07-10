@@ -7,7 +7,7 @@ use namespace::autoclean;
 use Net::Trac;
 
 use Git::Trac::Authentication;
-use Git::Trac::Ticket;
+use aliased 'Git::Trac::Ticket';
 with Storage( 'format' => 'JSON', 'io' => 'File' );
 
 our $VERSION = '0.01';
@@ -48,13 +48,17 @@ sub _build_tickets {
         owner  => $user,
         status => { 'not' => [qw(closed)] },
     );
+
     my @tickets;
+    $DB::single = 1;
     foreach my $ticket (@$tickets) {
-        push @tickets => {
-            id      => $ticket->id,
-            summary => $ticket->summary,
-            created => $ticket->created->ymd, # can't freeze a DateTime
-        };
+        my %ticket_data = map { $_ => $ticket->$_ } Ticket->string_attributes;
+
+        foreach my $coerced ( Ticket->datetime_attributes ) {
+            $ticket_data{$coerced} = '' . $ticket->$coerced;
+        }
+
+        push @tickets => \%ticket_data;
     }
     return \@tickets;
 }
@@ -62,7 +66,7 @@ sub _build_tickets {
 sub tickets {
     my $self = shift;
     my $tickets = $self->_tickets;
-    return [ map { Git::Trac::Ticket->new($_) } @$tickets ];
+    return [ map { Ticket->new($_) } @$tickets ];
 }
 
 __PACKAGE__->meta->make_immutable;

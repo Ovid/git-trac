@@ -47,10 +47,12 @@ sub tickets_to_string {
     my $self    = shift;
     my $tickets = $self->get_open_tickets;
     my $string  = '';
+
     foreach my $ticket (@$tickets) {
-        my ( $id, $summary, $created )
-          = map { $ticket->$_ } qw/id summary created/;
-        $string .= sprintf "%7d - $created - $summary\n" => $id;
+        my ( $id, $summary, $created, $status )
+          = map { $ticket->$_ } qw/id summary created status/;
+        $string .= sprintf "%7d - %s - %12s - $summary\n" => $id,
+          $created->ymd, $status;
     }
     return $string;
 }

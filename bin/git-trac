@@ -66,4 +66,6 @@ Options:
 
 Commands:
 
-    list        List open tickets
+    list             List open tickets
+
+=head1 DESCRIPTION
