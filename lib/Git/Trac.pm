@@ -170,7 +170,7 @@ sub switch_task {
     my $task = $self->task_list->by_id($id)
         or croak("No such task '$id'");
 
-    $self->git->run( checkout => $task->branch );
+    $self->_git->run( checkout => $task->branch );
     $self->task_list->set_current($task);
     return $self->tasks_to_string;
 }
