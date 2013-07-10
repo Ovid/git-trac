@@ -1,0 +1,69 @@
+#!/usr/bin/env perl
+
+use 5.010;
+use strict;
+use warnings;
+use lib 'lib';
+use Pod::Usage;
+use Getopt::Long;
+
+our $VERSION = '0.01';
+
+GetOptions(
+    'help|?'  => sub { pod2usage( -verbose => 1 ) },
+    'man'     => sub { pod2usage( -verbose => 2 ) },
+    'refresh' => \my $refresh,
+    'version' => \my $version,
+) or die "Bad Options";
+
+my ( $command, @args ) = @ARGV;
+
+if ( $version ) {
+    say "git-trac version $Git::Trac::VERSION";
+    exit 0;
+}
+
+if ( $refresh and not $command ) {
+    $command = 'list';
+}
+
+use Git::Trac;
+my $trac = Git::Trac->new( refresh => $refresh );
+
+if ($command) {
+    given ($command) {
+        when ('list') { say $trac->tickets_to_string }
+        default       { say "Unknown command: $command" }
+    }
+}
+else {
+    say "No command given";
+    pod2usage( -verbose => 1 );
+    exit 1;
+}
+
+__END__
+
+=head1 NAME
+
+git-trac - Track and update your trac tickets with git.
+
+=head1 VERSION
+
+0.01
+
+=head1 SYNOPSIS
+
+    git trac [--help|-?]
+    git trac [--man]
+    git trac [--refresh] COMMAND
+
+Options:
+
+    --help,-h,-?     Brief help message
+    --man,-m         Long help message
+    --refresh,-r     Force a refresh of Trac data (it's cached for one day)
+
+Commands:
+
+    list        List open tickets
