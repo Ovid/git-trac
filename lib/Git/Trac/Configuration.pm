@@ -6,6 +6,7 @@ use MooseX::Configuration;
 use File::stat;    # not File::Stat
 use Carp;
 use namespace::autoclean;
+use aliased 'Net::Trac::Connection';
 
 our $VERSION = '0.01';
 
@@ -49,6 +50,20 @@ has 'config_file' => (
     default  => sub { $ENV{GIT_TRAC_CONFIG} // "$ENV{HOME}/.git-trac.ini" },
 );
 
+has 'connection' => (
+    is      => 'ro',
+    isa     => Connection,
+    lazy    => 1,
+    builder => '_build_connection',
+);
+
+sub _build_connection {
+    my $self   = shift;
+    my @fields = qw/url user password/;
+    return Connection->new( map { $_ => $self->$_ } @fields );
+}
+
+
 sub BUILD {
     my $self = shift;
 
@@ -61,12 +76,6 @@ sub BUILD {
     unless ( ( $mode & 0600 ) == 0600 ) {
         croak("Permisions on '$config_file' must be 0600");
     }
-}
-
-sub connect {
-    my $self   = shift;
-    my @fields = qw/url user password/;
-    return Net::Trac::Connection->new( map { $_ => $self->$_ } @fields );
 }
 
 sub _usage {

@@ -32,7 +32,7 @@ has 'connection' => (
     lazy    => 1,
     builder => '_build_connection',
 );
-sub _build_connection { shift->configuration->connect; }
+sub _build_connection { shift->configuration->connection; }
 
 has '_tickets' => (
     is      => 'rw',

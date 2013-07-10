@@ -5,6 +5,7 @@ use Moose;
 use autodie ':all';
 use namespace::autoclean;
 use Carp;
+
 use aliased 'Git::Repository';
 
 use aliased 'Git::Trac::Configuration';
