@@ -23,8 +23,8 @@ if ( $version ) {
     exit 0;
 }
 
-if ( $refresh and not $command ) {
-    $command = 'list';
+if ($refresh) {
+    $command //= 'list';
 }
 
 use Git::Trac;
@@ -32,8 +32,13 @@ my $trac = Git::Trac->new( refresh => $refresh );
 
 if ($command) {
     given ($command) {
-        when ('list') { say $trac->tickets_to_string }
-        default       { say "Unknown command: $command" }
+        when ('tickets') { say $trac->tickets_to_string }
+        when ('tasks')   { say $trac->tasks_to_string }
+        when ('start')   { $trac->start_task(@args) }
+        when ('switch')  { say $trac->switch_task(@args) }
+        when ('commit')  { die 'unimplemented' }
+        when ('finish')  { die 'unimplemented' }
+        default          { say "Unknown command: $command" }
     }
 }
 else {
@@ -46,7 +51,7 @@ __END__
 
 =head1 NAME
 
-git-trac - Track and update your trac tickets with git.
+git-trac - Manage your trac tickets with git.
 
 =head1 VERSION
 
@@ -56,16 +61,24 @@ git-trac - Track and update your trac tickets with git.
 
     git trac [--help|-?]
     git trac [--man]
-    git trac [--refresh] COMMAND
+    git trac [--refresh] COMMAND ARGS
 
 Options:
 
     --help,-h,-?     Brief help message
     --man,-m         Long help message
-    --refresh,-r     Force a refresh of Trac data (it's cached for one day)
+    --refresh,-r     Force a refresh of Trac tickets
+    --version,-v     Print version of Git::Trac
 
 Commands:
 
-    list             List open tickets
+    tickets                      List open tickets
+    tasks                        List tasks
+    start  $number $branch_name  Start working on ticket $number in branch $branch_name
+    switch $number               Switch to already started task $number
+    commit $message              Commit a change with $message, posting the message to Trac
+    finish $number               Will close the ticket and delete the task
 
 =head1 DESCRIPTION
+
+Eventually we'll have something here
