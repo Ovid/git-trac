@@ -17,6 +17,7 @@ WriteMakefile(
     BUILD_REQUIRES => {
         'Test::More' => 0,
     },
+    EXE_FILES => ["bin/git-trac"],
     PREREQ_PM => {
         'Moose'                                  => '2.0',
         'MooseX::Storage'                        => '0.34',
