@@ -227,4 +227,7 @@ current task, if any.
 
 Otherwise, attempts to checkout the branch named in C<$branchname>.
 
+Obviously, if you have a branch named 'task' that you wish to switch to,
+you'll need to do so directly: C<< git checkout task >>.
+
 Will abort if the current branch is dirty.
