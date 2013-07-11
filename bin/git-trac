@@ -6,6 +6,7 @@ use warnings;
 use lib 'lib';
 use Pod::Usage;
 use Getopt::Long;
+use Git::Trac;
 
 our $VERSION = '0.01';
 
@@ -46,7 +47,6 @@ if ($refresh) {
     $command //= 'list';
 }
 
-use Git::Trac;
 my $trac = Git::Trac->new( refresh => $refresh );
 
 if ($command) {
