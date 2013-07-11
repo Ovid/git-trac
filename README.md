@@ -27,6 +27,8 @@ Commands:
     switch $number               Switch to already started task $number
     commit $message              Commit a change with $message, posting the message to Trac
     delete $number               Will delete the task (but not the branch)
+    comment $message             Adds a comment to the Trac ticket for the current task
+    checkout $branch             If branch is 'task', checks out the current task
 
 # DESCRIPTION
 
@@ -153,6 +155,19 @@ Deletes a task. Does not delete the branch or update Trac.
 ## `comment`
 
     git trac comment
-    git trac comment message
+    git trac comment $message
 
 Post a comment to Trac for the current task.
+
+## `checkout`
+
+    git trac checkout task
+    git trac checkout $branchname
+
+As a shortcut, because it is sometimes annoying to remember branch names, you
+can use `git trac checkout task` and that will automatically checkout the
+current task, if any.
+
+Otherwise, attempts to checkout the branch named in `$branchname`.
+
+Will abort if the current branch is dirty.
