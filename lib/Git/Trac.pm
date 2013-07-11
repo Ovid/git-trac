@@ -36,6 +36,18 @@ has 'ticket_list' => (
     documentation => 'List class of Trac tickets',
 );
 
+sub commands {
+    return (
+        tickets => sub { say shift->tickets_to_string },
+        tasks   => sub { say shift->tasks_to_string },
+        start   => sub { shift->start_task(@_) },
+        switch  => sub { say shift->switch_task(@_) },
+        commit  => sub { shift->commit(@_) },
+        delete  => sub { shift->delete(@_) },
+        comment => sub { shift->comment(@_) },
+    );
+}
+
 sub _build_ticket_list {
     my $self  = shift;
     my $cache = $self->ticket_cache;

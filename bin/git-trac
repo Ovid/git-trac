@@ -10,15 +10,8 @@ use Git::Trac;
 
 our $VERSION = '0.01';
 
-my %commands = (    # yeah, this could be cleaned up, too
-    tickets => sub { say shift->tickets_to_string },
-    tasks   => sub { say shift->tasks_to_string },
-    start   => sub { shift->start_task(@_) },
-    switch  => sub { say shift->switch_task(@_) },
-    commit  => sub { shift->commit(@_) },
-    delete  => sub { shift->delete(@_) },
-    comment => sub { shift->comment(@_) },
-);
+my %commands = Git::Trac->commands;
+
 my ( $command, @args );
 
 for my $i ( 0 .. $#ARGV ) {
