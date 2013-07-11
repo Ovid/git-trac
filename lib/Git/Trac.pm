@@ -38,13 +38,14 @@ has 'ticket_list' => (
 
 sub commands {
     return (
-        tickets => sub { say shift->tickets_to_string },
-        tasks   => sub { say shift->tasks_to_string },
-        start   => sub { shift->start_task(@_) },
-        switch  => sub { say shift->switch_task(@_) },
-        commit  => sub { shift->commit(@_) },
-        delete  => sub { shift->delete(@_) },
-        comment => sub { shift->comment(@_) },
+        tickets  => sub { say shift->tickets_to_string },
+        tasks    => sub { say shift->tasks_to_string },
+        start    => sub { shift->start_task(@_) },
+        switch   => sub { say shift->switch_task(@_) },
+        commit   => sub { shift->commit(@_) },
+        delete   => sub { shift->delete(@_) },
+        comment  => sub { shift->comment(@_) },
+        checkout => sub { shift->checkout(@_) },
     );
 }
 
@@ -282,6 +283,28 @@ END
         connection => $self->configuration->connection,
         comment    => $message,
     );
+}
+
+sub checkout {
+    my ( $self, @args ) = @_;
+
+    if ( $self->_branch_is_dirty ) {
+        warn "Aborting checkout due to dirty branch";
+        return;
+    }
+    if ( 1 == @args && 'task' eq $args[0] ) {
+        if ( my $task = $self->task_list->current_task ) {
+            my $branch = $task->branch;
+            $self->_git->run( 'checkout' => $branch );
+            return;
+        }
+        else {
+            warn "No current task found";
+            say $self->tasks_to_string;
+            return;
+        }
+    }
+    return $self->_git->run( 'checkout', @args );
 }
 
 sub _branch_is_dirty {
