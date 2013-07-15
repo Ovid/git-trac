@@ -36,19 +36,6 @@ has 'ticket_list' => (
     documentation => 'List class of Trac tickets',
 );
 
-sub commands {
-    return (
-        tickets  => sub { say shift->tickets_to_string },
-        tasks    => sub { say shift->tasks_to_string },
-        start    => sub { shift->start_task(@_) },
-        switch   => sub { say shift->switch_task(@_) },
-        commit   => sub { shift->commit(@_) },
-        delete   => sub { shift->delete(@_) },
-        comment  => sub { shift->comment(@_) },
-        checkout => sub { shift->checkout(@_) },
-    );
-}
-
 sub _build_ticket_list {
     my $self  = shift;
     my $cache = $self->ticket_cache;
@@ -102,10 +89,23 @@ has '_git' => (
 );
 sub _build_git { Repository->new }
 
-has 'refresh' => (
+has [ 'refresh', 'force' ] => (
     is  => 'ro',
     isa => 'Bool',
 );
+
+sub commands {
+    return (
+        tickets  => sub { say shift->tickets_to_string },
+        tasks    => sub { say shift->tasks_to_string },
+        start    => sub { shift->start_task(@_) },
+        switch   => sub { say shift->switch_task(@_) },
+        commit   => sub { shift->commit(@_) },
+        delete   => sub { shift->delete(@_) },
+        comment  => sub { shift->comment(@_) },
+        checkout => sub { shift->checkout(@_) },
+    );
+}
 
 sub tickets_to_string {
     my $self   = shift;
@@ -159,7 +159,12 @@ sub start_task {
 
     if ( $self->task_list->by_id($id) ) {
         warn "Task $id already started\n";
-        return;
+        if ( $self->force ) {
+            warn "Creating new branch because --force is in effect\n";
+        }
+        else {
+            return;
+        }
     }
     my $branch = join '_' => @name;
     $branch =~ s/\W/_/g;

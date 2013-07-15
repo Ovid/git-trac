@@ -1,6 +1,7 @@
 Revision history for Git-Trac
 
-0.02    2013/07/15
+0.02
+        - Add ability to 'force' starting a task.
         - Add status and diff to commit messages.
 
 0.01    2013/07/11

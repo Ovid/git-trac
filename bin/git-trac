@@ -29,6 +29,7 @@ GetOptions(
     'man'     => sub { pod2usage( -verbose => 2 ) },
     'refresh' => \my $refresh,
     'version' => \my $version,
+    'force'   => \my $force,
 ) or die "Bad Options";
 
 if ($version) {
@@ -40,7 +41,7 @@ if ($refresh) {
     $command //= 'list';
 }
 
-my $trac = Git::Trac->new( refresh => $refresh );
+my $trac = Git::Trac->new( refresh => $refresh, force => 1 );
 
 if ($command) {
     my $action = $commands{$command}
@@ -76,6 +77,7 @@ Options:
     --man,-m         Long help message
     --refresh,-r     Force a refresh of Trac tickets
     --version,-v     Print version of Git::Trac
+    --force,-c       Attempt to force command, if possible.
 
 Commands:
 
@@ -167,6 +169,7 @@ The columns are "ticket number", "branch name", "summary"
 =head2 C<start>
 
     git trac start $number $branch_name
+    git trac start --force $number $branch_name
 
 This starts a new task, based on the ticket number. The task number will be
 the same as the ticket number. You must supply a branch name and any non-word
@@ -176,6 +179,10 @@ Will fail if the current branch is dirty (has uncommitted changes) or the Trac
 ticket number does not exist (if you're sure it exists, make sure you're the
 owner, the task is not closed, and run C<< git trac -r >> to update your
 tickets).
+
+Will fail if the task is already "started", but you may use the C<--force>
+switch to override this. This is useful if you wish to continue the task in a
+new branch.
 
 First, it checks out the C<integration_branch> listed in your configuration
 and then it branches from there. It does not attempt up update anything.
