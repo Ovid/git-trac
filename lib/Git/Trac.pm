@@ -403,6 +403,8 @@ L<http://search.cpan.org/dist/Git-Trac/>
 
 =head1 ACKNOWLEDGEMENTS
 
+If you use Redmine and Git, checkout the Git Redmine Suite at
+https://github.com/celogeek/git-redmine-suite.
 
 =head1 LICENSE AND COPYRIGHT
 
