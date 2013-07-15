@@ -228,7 +228,6 @@ sub comment {
     }
 
     unless ($comment) {
-        my $id = $task->id;
         $comment = Term::EditorEdit->edit( document => <<"END");
 Comments are posted verbatim.
 END
@@ -257,6 +256,9 @@ sub commit {
     unless ( grep {/^-m$/} @args ) {
         my $id      = $task->id;
         my $branch  = $task->branch;
+        my $status  = $self->_status;
+        my $staged  = $self->_diff('--staged');
+        my $diff    = $self->_diff;
         my $message = Term::EditorEdit->edit( document => <<"END");
 Ticket #$id. Enter you commit message here
 
@@ -265,6 +267,16 @@ Description
 # Please enter the commit message for your changes. Lines starting
 # with '#' will be ignored, and an empty message aborts the commit.
 # On branch $branch
+$status
+
+# The diffs below are for all staged and unstanged changes. Which changes you
+# commit are based on your commit options.
+
+# Staged changes:
+$staged
+
+# Unstaged changes:
+$diff
 END
         unless ($message) {
             die "Aborting commit due to empty commit message";
@@ -310,6 +322,16 @@ sub checkout {
 sub _branch_is_dirty {
     my $self = shift;
     return $self->_git->run('diff', '--shortstat');
+}
+
+sub _status {
+    my $self = shift;
+    return $self->_git->run('status');
+}
+
+sub _diff {
+    my ( $self, @args ) = @_;
+    return $self->_git->run('diff', @args);
 }
 
 __PACKAGE__->meta->make_immutable;

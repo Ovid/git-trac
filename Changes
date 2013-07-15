@@ -1,5 +1,8 @@
 Revision history for Git-Trac
 
-0.01    Date/time
+0.02    2013/07/15
+        - Add status and diff to commit messages.
+
+0.01    2013/07/11
         First version, released on an unsuspecting world.
 
