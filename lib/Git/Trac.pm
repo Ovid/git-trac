@@ -117,6 +117,7 @@ sub tickets_to_string {
     }
 
     foreach my $ticket ( @{ $self->ticket_list->tickets } ) {
+
         my ( $id, $summary, $created, $status )
           = map { $ticket->$_ } qw/id summary created status/;
         $string .= sprintf "%7d - %s - %-12s - $summary\n" => $id,
@@ -259,6 +260,9 @@ sub commit {
         my $status  = $self->_status;
         my $staged  = $self->_diff('--staged');
         my $diff    = $self->_diff;
+
+        s/^/#/gm foreach $staged, $diff;
+
         my $message = Term::EditorEdit->edit( document => <<"END");
 Ticket #$id. Enter you commit message here
 
