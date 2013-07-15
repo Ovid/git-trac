@@ -14,7 +14,7 @@ use aliased 'Git::Trac::Task';
 use aliased 'Git::Trac::Ticket::List' => 'TicketList';
 use aliased 'Git::Trac::Task::List'   => 'TaskList';
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 has 'configuration' => (
     is      => 'ro',
@@ -346,7 +346,7 @@ Git::Trac - Interact with git and trac
 
 =head1 VERSION
 
-Version 0.01
+Version 0.02
 
 =cut
 

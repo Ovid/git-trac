@@ -10,7 +10,7 @@ use Net::Trac;
 use aliased 'Git::Trac::Ticket';
 with Storage( 'format' => 'JSON', 'io' => 'File' );
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 has 'cache' => (
     is       => 'ro',

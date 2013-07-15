@@ -7,7 +7,7 @@ use MooseX::Types::DateTime::MoreCoercions qw(DateTime);
 use DateTime::Format::Strptime;
 use Net::Trac::Ticket;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 has [qw/id summary status/] => (
     is       => 'ro',

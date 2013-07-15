@@ -8,7 +8,7 @@ use Carp;
 use namespace::autoclean;
 use aliased 'Net::Trac::Connection';
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 has 'user' => (
     is            => 'ro',

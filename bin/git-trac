@@ -8,7 +8,7 @@ use Pod::Usage;
 use Getopt::Long;
 use Git::Trac;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 my %commands = Git::Trac->commands;
 
@@ -62,7 +62,7 @@ git-trac - Manage your trac tickets with git.
 
 =head1 VERSION
 
-0.01
+0.02
 
 =head1 SYNOPSIS
 
