@@ -266,7 +266,9 @@ sub commit {
         my $staged  = $self->_diff('--staged');
         my $diff    = $self->_diff;
 
-        s/^/#/gm foreach $staged, $diff;
+        # make sure we have a comment sign in front of all lines that don't
+        # begin with one.
+        s/^(?!#)/#/gm foreach $staged, $diff, $status;
 
         my $message = Term::EditorEdit->edit( document => <<"END");
 Ticket #$id. Enter you commit message here
