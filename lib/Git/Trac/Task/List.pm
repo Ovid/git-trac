@@ -14,6 +14,13 @@ has 'cache' => (
     required => 1,
 );
 
+has 'silent' => (
+    is      => 'rw',
+    isa     => 'Bool',
+    default => 0,
+    traits  => ['DoNotSerialize'],
+);
+
 has 'tasks' => (
     traits  => [ 'Array', 'DoNotSerialize' ],
     is      => 'rw',
@@ -34,11 +41,19 @@ sub _build_tasks {
 
     my @tasks;
     foreach my $task (@$tasks) {
-        push @tasks => Task->new(
-            ticket     => $ticket_list->by_id( $task->{id} ),
-            branch     => $task->{branch},
-            is_current => $task->{is_current},
-        );
+        if ( my $ticket = $ticket_list->by_id( $task->{id} ) ) {
+            push @tasks => Task->new(
+                ticket     => $ticket,
+                branch     => $task->{branch},
+                is_current => $task->{is_current},
+            );
+        }
+        else {
+            unless ( $self->silent ) {
+                warn
+                  "Could not find ticket for task '$task->{id}'. Did you forget to run git trac delete '$task->{id}'?";
+            }
+        }
     }
     return \@tasks;
 }
@@ -87,7 +102,7 @@ sub add_task {
 sub delete {
     my ( $self, $task ) = @_;
 
-    my $id = $task->id;
+    my $id = ref $task ? $task->id : $task;
     my @tasks = grep { $_->id ne $id } @{ $self->tasks };
     $self->tasks( \@tasks );
     @tasks = grep { $_->{id} ne $id } @{ $self->_tasks };

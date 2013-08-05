@@ -214,13 +214,20 @@ sub switch_task {
 
 sub delete {
     my ( $self, $id ) = @_;
-    my $task = $self->task_list->by_id($id)
-      or croak("No such task '$id'");
-    if ( my $dirty = $self->_branch_is_dirty ) {
-        warn "Refusing to delete task with dirty branch\n$dirty";
-        return;
+
+    my $task_list = $self->task_list;
+    if ( my $task = $task_list->by_id($id) ) {
+        if ( my $dirty = $self->_branch_is_dirty ) {
+            warn "Refusing to delete task with dirty branch\n$dirty";
+            return;
+        }
+        $self->task_list->delete($task);
     }
-    $self->task_list->delete($task);
+    else {
+        warn
+          "No ticket or task matching '$id' was found. Maybe it was already deleted?";
+        $task_list->delete($id);
+    }
 }
 
 sub comment {
